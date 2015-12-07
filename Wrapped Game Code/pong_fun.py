@@ -44,6 +44,9 @@ class GameState:
         pygame.event.pump()
         reward = 1
 
+        if sum(input_vect) != 1:
+            raise ValueError('Multiple input actions!')
+
         if input_vect[1] == 1:#Key up
             self.bar1_move = -ai_speed
         elif input_vect[2] == 1:#Key down
