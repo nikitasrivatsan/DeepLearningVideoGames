@@ -8,7 +8,7 @@ def weight_variable(shape):
 
 def bias_variable(shape):
     initial = tf.constant(0.1, shape = shape)
-    return ft.Variable(initial)
+    return tf.Variable(initial)
 
 def conv2d(x, W, stride):
     return tf.nn.conv2d(x, W, strides = [1, stride, stride, 1], padding = "SAME")
@@ -24,24 +24,24 @@ def createNetwork():
     b_conv2 = bias_variable([64])
 
     W_conv3 = weight_variable([3, 3, 64, 64])
-    b_conv3 = bais_variable([64])
+    b_conv3 = bias_variable([64])
     
     W_fc1 = weight_variable([10 * 10 * 64, 512])
     b_fc1 = bias_variable([512])
 
-    W_fc2 = weight_variable([512, 3)]
+    W_fc2 = weight_variable([512, 3])
     b_fc2 = bias_variable([3])
 
     s = tf.placeholder("float", [None, 80, 80, 4])
 
-    h_conv1 = tf.nn.relu(conv2d(s_image, W_conv1, 4) + b_conv1)
-    h_pool = max_pool(h_conv1)
+    h_conv1 = tf.nn.relu(conv2d(s, W_conv1, 4) + b_conv1)
+    h_pool1 = max_pool_2x2(h_conv1)
 
     h_conv2 = tf.nn.relu(conv2d(h_pool1, W_conv2, 2) + b_conv2)
-    h_pool2 = max_pool(h_conv2)
+    h_pool2 = max_pool_2x2(h_conv2)
 
     h_conv3 = tf.nn.relu(conv2d(h_pool2, W_conv3, 1) + b_conv3)
-    h_pool3 = max_pool(h_conv3)
+    h_pool3 = max_pool_2x2(h_conv3)
 
     h_pool3_flat = tf.reshape(h_pool3, [-1, 10 * 10 * 64])
 
@@ -52,8 +52,19 @@ def createNetwork():
     return s, readout
 
 def trainNetwork(s, readout):
-    y = r + gamma * tf.reduce_max(
-    cost = tf.square(
+    gamma = 0.99
+    r = tf.placeholder("float")
+    a = tf.placeholder("float", [3])
+    y = r + gamma * tf.reduce_max(readout)
+    cost = tf.square(y - readout[a])
 
 def playGame():
+    # TODO linearly decrease as frames go on
+    epsilon = 0.05
     s, readout = createNetwork()
+
+def main():
+    playGame()
+
+if __name__ == "__main__":
+    main()
