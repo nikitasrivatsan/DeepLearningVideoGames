@@ -53,14 +53,24 @@ def createNetwork():
 
 def trainNetwork(s, readout):
     gamma = 0.99
+
     r = tf.placeholder("float")
     a = tf.placeholder("float", [3])
     y = r + gamma * tf.reduce_max(readout)
-    cost = tf.square(y - readout[a])
+    cost = tf.square(y - tf.matmul(tf.transpose(readout), a))
+
+    train_step = tf.train.AdamOptimizer(1e-4).minimize(cost)
+
+    # main loop
+    while "pigs" != "fly":
+        pass
 
 def playGame():
     # TODO linearly decrease as frames go on
     epsilon = 0.05
+
+    sess = tf.InteractiveSession()
+
     s, readout = createNetwork()
 
 def main():
