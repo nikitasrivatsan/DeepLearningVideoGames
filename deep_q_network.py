@@ -54,6 +54,7 @@ def createNetwork():
 def trainNetwork(s, readout):
     gamma = 0.99
 
+    # define the cost function
     r = tf.placeholder("float")
     a = tf.placeholder("float", [3])
     y = r + gamma * tf.reduce_max(readout)
@@ -63,6 +64,7 @@ def trainNetwork(s, readout):
 
     # main loop
     while "pigs" != "fly":
+        # read input from the game
         pass
 
 def playGame():
@@ -70,8 +72,8 @@ def playGame():
     epsilon = 0.05
 
     sess = tf.InteractiveSession()
-
     s, readout = createNetwork()
+    trainNetwork(s, readout)
 
 def main():
     playGame()
