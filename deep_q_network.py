@@ -66,8 +66,7 @@ def createNetwork():
     h_fc1 = tf.nn.relu(tf.matmul(h_pool3_flat, W_fc1) + b_fc1)
 
     # readout layer
-    # TODO it may be important to remove the relu on this layer
-    readout = tf.nn.relu(tf.matmul(h_fc1, W_fc2) + b_fc2)
+    readout = tf.matmul(h_fc1, W_fc2) + b_fc2
 
     return s, readout
 

@@ -24,12 +24,9 @@ circ_sur = pygame.Surface((15,15))
 circ = pygame.draw.circle(circ_sur,(255,255,255),(15/2,15/2),15/2)
 circle = circ_sur.convert()
 circle.set_colorkey((0,0,0))
-clock = pygame.time.Clock()
 font = pygame.font.SysFont("calibri",40)
-time_passed = clock.tick()
-time_sec = time_passed / 1000.0
-speed_circ = 250.
-ai_speed = speed_circ * time_sec
+
+ai_speed = 15.
 
 HIT_REWARD = 0
 LOSE_REWARD = -1
@@ -42,7 +39,7 @@ class GameState:
         self.circle_x, self.circle_y = 307.5, 232.5
         self.bar1_move, self.bar2_move = 0. , 0.
         self.bar1_score, self.bar2_score = 0,0
-        self.speed_x, self.speed_y = 250., 250.
+        self.speed_x, self.speed_y = 7., 7.
 
     def frame_step(self,input_vect):
         pygame.event.pump()
@@ -113,8 +110,8 @@ class GameState:
             self.speed_y = -self.speed_y
             self.circle_y = 457.5
 
-        self.circle_x += self.speed_x * time_sec
-        self.circle_y += self.speed_y * time_sec
+        self.circle_x += self.speed_x
+        self.circle_y += self.speed_y
 
         image_data = pygame.surfarray.array3d(pygame.display.get_surface())
 
