@@ -11,11 +11,12 @@ import numpy as np
 GAMMA = 0.99 # decay rate of past observations
 ACTIONS = 3 # number of valid actions
 OBSERVE = 50000. # timesteps to observe before training
-EXPLORE = 100000. # frames over which to anneal epsilon
+EXPLORE = 500000. # frames over which to anneal epsilon
 FINAL_EPSILON = 0.1 # final value of epsilon
 INITIAL_EPSILON = 1.0 # starting value of epsilon
 REPLAY_MEMORY = 1000000 # number of previous transitions to remember
 BATCH = 32 # size of minibatch
+K = 4 # only select an action every Kth frame, repeat prev for others
 
 def weight_variable(shape):
     initial = tf.truncated_normal(shape, stddev = 0.1)
@@ -77,10 +78,10 @@ def trainNetwork(s, readout, sess):
     cost = tf.reduce_sum(tf.square(y - tf.reduce_max(tf.mul(readout, a), reduction_indices = 1)))
     train_step = tf.train.RMSPropOptimizer(0.00025, 0.95, 0.95, 0.01).minimize(cost)
 
-    # open up a game state
+    # open up a game state to communicate with emulator
     game_state = pong_fun.GameState()
 
-    # store the previous observations
+    # store the previous observations in replay memory
     D = []
 
     # get the first state by doing nothing and preprocess the image to 80x80x4
@@ -88,9 +89,15 @@ def trainNetwork(s, readout, sess):
     x_t = cv2.cvtColor(cv2.resize(x_t, (80, 80)), cv2.COLOR_BGR2GRAY)
     s_t = np.stack((x_t, x_t, x_t, x_t), axis = 2)
 
-    # main loop
-    epsilon = INITIAL_EPSILON
+    # saving and loading networks
+    saver = tf.train.Saver()
     sess.run(tf.initialize_all_variables())
+    checkpoint = tf.train.get_checkpoint_state("saved_networks")
+    if checkpoint and checkpoint.model_checkpoint_path:
+        saver.restore(sess, checkpoint.model_checkpoint_path)
+        print "Successfully loaded previous model"
+
+    epsilon = INITIAL_EPSILON
     t = 0
     while "pigs" != "fly":
         # choose an action epsilon greedily
@@ -108,17 +115,17 @@ def trainNetwork(s, readout, sess):
         if epsilon > FINAL_EPSILON and t > OBSERVE:
             epsilon -= (INITIAL_EPSILON - FINAL_EPSILON) / EXPLORE
 
-        # run the selected action and observe next state and reward
-        x_t1, r_t, terminal = game_state.frame_step(a_t)
-        x_t1 = cv2.cvtColor(cv2.resize(x_t1, (80, 80)), cv2.COLOR_BGR2GRAY)
-        cv2.imwrite("output/x_" + str(t) + ".jpg", x_t1)
-        x_t1 = np.reshape(x_t1, (80, 80, 1))
-        s_t1 = np.append(x_t1, s_t[:,:,1:], axis = 2)
+        for i in range(0, K):
+            # run the selected action and observe next state and reward
+            x_t1, r_t, terminal = game_state.frame_step(a_t)
+            x_t1 = cv2.cvtColor(cv2.resize(x_t1, (80, 80)), cv2.COLOR_BGR2GRAY)
+            x_t1 = np.reshape(x_t1, (80, 80, 1))
+            s_t1 = np.append(x_t1, s_t[:,:,1:], axis = 2)
 
-        # store the transition in D
-        D.append((s_t, a_t, r_t, s_t1, terminal))
-        if len(D) > REPLAY_MEMORY:
-            D.pop(0)
+            # store the transition in D
+            D.append((s_t, a_t, r_t, s_t1, terminal))
+            if len(D) > REPLAY_MEMORY:
+                D.pop(0)
 
         # only train if done observing
         if t > OBSERVE:
@@ -148,7 +155,11 @@ def trainNetwork(s, readout, sess):
 
         # update the old values
         s_t = s_t1
-        t += 1
+        t += K
+
+        # save progress every 10000 iterations
+        if t % 10000 == 0:
+            saver.save(sess, 'saved_networks/pong-dqn', global_step = t)
 
         # print info
         state = ""
