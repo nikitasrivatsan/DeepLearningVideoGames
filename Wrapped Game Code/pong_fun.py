@@ -116,4 +116,11 @@ class GameState:
         image_data = pygame.surfarray.array3d(pygame.display.get_surface())
 
         pygame.display.update()
-        return image_data, reward
+
+        terminal = False
+        if max(self.bar1_score, self.bar2_score) >= 20:
+            self.bar1_score = 0
+            self.bar2_score = 0
+            terminal = True
+
+        return image_data, reward, terminal

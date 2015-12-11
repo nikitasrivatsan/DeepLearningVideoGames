@@ -109,14 +109,14 @@ def trainNetwork(s, readout, sess):
             epsilon -= (INITIAL_EPSILON - FINAL_EPSILON) / EXPLORE
 
         # run the selected action and observe next state and reward
-        x_t1, r_t = game_state.frame_step(a_t)
+        x_t1, r_t, terminal = game_state.frame_step(a_t)
         x_t1 = cv2.cvtColor(cv2.resize(x_t1, (80, 80)), cv2.COLOR_BGR2GRAY)
         cv2.imwrite("output/x_" + str(t) + ".jpg", x_t1)
         x_t1 = np.reshape(x_t1, (80, 80, 1))
         s_t1 = np.append(x_t1, s_t[:,:,1:], axis = 2)
 
         # store the transition in D
-        D.append((s_t, a_t, r_t, s_t1))
+        D.append((s_t, a_t, r_t, s_t1, terminal))
         if len(D) > REPLAY_MEMORY:
             D.pop(0)
 
@@ -134,7 +134,11 @@ def trainNetwork(s, readout, sess):
             y_batch = []
             readout_batch = readout.eval(feed_dict = {s : s_j1_batch})
             for i in range(0, len(minibatch)):
-                y_batch.append(r_batch[i] + GAMMA * np.max(readout_batch[i]))
+                # if terminal only equals reward
+                if minibatch[i][4]:
+                    y_batch.append(r_batch[i])
+                else:
+                    y_batch.append(r_batch[i] + GAMMA * np.max(readout_batch[i]))
 
             # perform gradient step
             train_step.run(feed_dict = {
