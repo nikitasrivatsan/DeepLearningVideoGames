@@ -55,6 +55,8 @@ class GameState:
             self.bar1_move = -ai_speed
         elif input_vect[2] == 1:#Key down
             self.bar1_move = ai_speed
+        else: # don't move
+            self.bar1_move = 0
                 
         self.score1 = font.render(str(self.bar1_score), True,(255,255,255))
         self.score2 = font.render(str(self.bar2_score), True,(255,255,255))

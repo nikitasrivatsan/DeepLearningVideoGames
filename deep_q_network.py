@@ -11,7 +11,7 @@ import numpy as np
 GAMMA = 0.99 # decay rate of past observations
 ACTIONS = 3 # number of valid actions
 OBSERVE = 50000. # timesteps to observe before training
-EXPLORE = 1000000. # frames over which to anneal epsilon
+EXPLORE = 100000. # frames over which to anneal epsilon
 FINAL_EPSILON = 0.1 # final value of epsilon
 INITIAL_EPSILON = 1.0 # starting value of epsilon
 REPLAY_MEMORY = 1000000 # number of previous transitions to remember
@@ -66,6 +66,7 @@ def createNetwork():
     h_fc1 = tf.nn.relu(tf.matmul(h_pool3_flat, W_fc1) + b_fc1)
 
     # readout layer
+    # TODO it may be important to remove the relu on this layer
     readout = tf.nn.relu(tf.matmul(h_fc1, W_fc2) + b_fc2)
 
     return s, readout
@@ -154,7 +155,7 @@ def trainNetwork(s, readout, sess):
             state = "explore"
         else:
             state = "train"
-        print "TIMESTEP", t, "/ STATE", state, "/ EPSILON", epsilon, "/ ACTION", action_index, "/ REWARD", r_t, "/ Q_MAX", np.max(readout_t)
+        print "TIMESTEP", t, "/ STATE", state, "/ EPSILON", epsilon, "/ ACTION", action_index, "/ REWARD", r_t, "/ Q_MAX %e" % np.max(readout_t)
 
 def playGame():
     sess = tf.InteractiveSession()
