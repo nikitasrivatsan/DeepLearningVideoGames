@@ -134,7 +134,7 @@ def trainNetwork(s, readout, sess):
             y_batch = []
             readout_batch = readout.eval(feed_dict = {s : s_j1_batch})
             for i in range(0, len(minibatch)):
-                y_batch.append(r_batch[i] + GAMMA * np.max(readout[i]))
+                y_batch.append(r_batch[i] + GAMMA * np.max(readout_batch[i]))
 
             # perform gradient step
             train_step.run(feed_dict = {
