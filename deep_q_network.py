@@ -10,6 +10,12 @@ import numpy as np
 
 GAMMA = 0.99 # decay rate of past observations
 ACTIONS = 3 # number of valid actions
+OBSERVE = 50000. # timesteps to observe before training
+EXPLORE = 1000000. # frames over which to anneal epsilon
+FINAL_EPSILON = 0.1 # final value of epsilon
+INITIAL_EPSILON = 1.0 # starting value of epsilon
+REPLAY_MEMORY = 1000000 # number of previous transitions to remember
+BATCH = 32 # size of minibatch
 
 def weight_variable(shape):
     initial = tf.truncated_normal(shape, stddev = 0.1)
@@ -68,8 +74,8 @@ def trainNetwork(s, readout, sess):
     # define the cost function
     a = tf.placeholder("float", [None, ACTIONS])
     y = tf.placeholder("float", [None])
-    cost = tf.square(y - tf.reduce_max(tf.mul(readout, a), reduction_indices = 1))
-    train_step = tf.train.AdamOptimizer(1e-4).minimize(cost)
+    cost = tf.reduce_sum(tf.square(y - tf.reduce_max(tf.mul(readout, a), reduction_indices = 1)))
+    train_step = tf.train.RMSPropOptimizer(0.00025, 0.95, 0.95, 0.01).minimize(cost)
 
     # open up a game state
     game_state = pong_fun.GameState()
@@ -83,22 +89,24 @@ def trainNetwork(s, readout, sess):
     s_t = np.stack((x_t, x_t, x_t, x_t), axis = 2)
 
     # main loop
-    epsilon = 1.0
+    epsilon = INITIAL_EPSILON
     sess.run(tf.initialize_all_variables())
     t = 0
     while "pigs" != "fly":
         # choose an action epsilon greedily
+        readout_t = readout.eval(feed_dict = {s : [s_t]})[0]
         a_t = np.zeros([ACTIONS])
-        if random.random() <= epsilon:
+        action_index = 0
+        if random.random() <= epsilon or t <= OBSERVE:
+            action_index = random.randrange(ACTIONS)
             a_t[random.randrange(ACTIONS)] = 1
         else:
-            action_index = np.argmax(readout.eval(feed_dict = {
-                s : [s_t]}), 1)[0]
+            action_index = np.argmax(readout_t)
             a_t[action_index] = 1
 
         # scale down epsilon
-        if epsilon > 0.05:
-            epsilon -= 0.95 / 1000
+        if epsilon > FINAL_EPSILON and t > OBSERVE:
+            epsilon -= (INITIAL_EPSILON - FINAL_EPSILON) / EXPLORE
 
         # run the selected action and observe next state and reward
         x_t1, r_t = game_state.frame_step(a_t)
@@ -109,32 +117,44 @@ def trainNetwork(s, readout, sess):
 
         # store the transition in D
         D.append((s_t, a_t, r_t, s_t1))
-        if len(D) > 1000000:
+        if len(D) > REPLAY_MEMORY:
             D.pop(0)
 
-        # sample a minibatch to train on
-        minibatch = random.sample(D, 32) if len(D) > 32 else D
+        # only train if done observing
+        if t > OBSERVE:
+            # sample a minibatch to train on
+            minibatch = random.sample(D, BATCH) if len(D) > BATCH else D
 
-        # get the batch variables
-        s_j_batch = [d[0] for d in minibatch]
-        a_batch = [d[1] for d in minibatch]
-        r_batch = [d[2] for d in minibatch]
-        s_j1_batch = [d[3] for d in minibatch]
+            # get the batch variables
+            s_j_batch = [d[0] for d in minibatch]
+            a_batch = [d[1] for d in minibatch]
+            r_batch = [d[2] for d in minibatch]
+            s_j1_batch = [d[3] for d in minibatch]
 
-        y_batch = []
-        for i in range(0, len(minibatch)):
-            readout_i = readout.eval(feed_dict = {s : [s_j1_batch[i]]})[0]
-            y_batch.append(r_batch[i] + GAMMA * np.max(readout_i))
+            y_batch = []
+            readout_batch = readout.eval(feed_dict = {s : s_j1_batch})
+            for i in range(0, len(minibatch)):
+                y_batch.append(r_batch[i] + GAMMA * np.max(readout[i]))
 
-        # perform gradient step
-        train_step.run(feed_dict = {
-            y : y_batch,
-            a : a_batch,
-            s : s_j_batch})
+            # perform gradient step
+            train_step.run(feed_dict = {
+                y : y_batch,
+                a : a_batch,
+                s : s_j_batch})
 
         # update the old values
         s_t = s_t1
         t += 1
+
+        # print info
+        state = ""
+        if t <= OBSERVE:
+            state = "observe"
+        elif t > OBSERVE and t <= OBSERVE + EXPLORE:
+            state = "explore"
+        else:
+            state = "train"
+        print "TIMESTEP", t, "/ STATE", state, "/ EPSILON", epsilon, "/ ACTION", action_index, "/ REWARD", r_t, "/ Q_MAX", np.max(readout_t)
 
 def playGame():
     sess = tf.InteractiveSession()
