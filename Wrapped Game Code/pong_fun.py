@@ -114,5 +114,3 @@ class GameState:
 
         pygame.display.update()
         return image_data, reward
-
-g = GameState()
