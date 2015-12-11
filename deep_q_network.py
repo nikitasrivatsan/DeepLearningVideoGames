@@ -84,7 +84,7 @@ def trainNetwork(s, readout, sess):
     D = []
 
     # get the first state by doing nothing and preprocess the image to 80x80x4
-    x_t, r_0 = game_state.frame_step([1, 0, 0])
+    x_t, r_0, terminal = game_state.frame_step([1, 0, 0])
     x_t = cv2.cvtColor(cv2.resize(x_t, (80, 80)), cv2.COLOR_BGR2GRAY)
     s_t = np.stack((x_t, x_t, x_t, x_t), axis = 2)
 
