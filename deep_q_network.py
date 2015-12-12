@@ -4,7 +4,8 @@ import tensorflow as tf
 import cv2
 import sys
 sys.path.append("Wrapped Game Code/")
-import pong_fun
+import pong_fun as game # whichever is imported "as game" will be used
+import dummy_game
 import random
 import numpy as np
 
@@ -15,15 +16,15 @@ EXPLORE = 500000. # frames over which to anneal epsilon
 FINAL_EPSILON = 0.1 # final value of epsilon
 INITIAL_EPSILON = 1.0 # starting value of epsilon
 REPLAY_MEMORY = 500000 # number of previous transitions to remember
-BATCH = 32 # size of minibatch
-K = 4 # only select an action every Kth frame, repeat prev for others
+BATCH = 100 # size of minibatch
+K = 1 # only select an action every Kth frame, repeat prev for others
 
 def weight_variable(shape):
-    initial = tf.truncated_normal(shape, stddev = 0.1)
+    initial = tf.truncated_normal(shape, stddev = 0.01)
     return tf.Variable(initial)
 
 def bias_variable(shape):
-    initial = tf.constant(0.1, shape = shape)
+    initial = tf.constant(0.01, shape = shape)
     return tf.Variable(initial)
 
 def conv2d(x, W, stride):
@@ -43,10 +44,10 @@ def createNetwork():
     W_conv3 = weight_variable([3, 3, 64, 64])
     b_conv3 = bias_variable([64])
     
-    W_fc1 = weight_variable([256, 512])
-    b_fc1 = bias_variable([512])
+    W_fc1 = weight_variable([256, 256])
+    b_fc1 = bias_variable([256])
 
-    W_fc2 = weight_variable([512, ACTIONS])
+    W_fc2 = weight_variable([256, ACTIONS])
     b_fc2 = bias_variable([ACTIONS])
 
     # input layer
@@ -75,11 +76,13 @@ def trainNetwork(s, readout, sess):
     # define the cost function
     a = tf.placeholder("float", [None, ACTIONS])
     y = tf.placeholder("float", [None])
-    cost = tf.reduce_mean(tf.square(tf.maximum(tf.minimum(y - tf.reduce_max(tf.mul(readout, a), reduction_indices = 1), 1), -1)))
-    train_step = tf.train.RMSPropOptimizer(0.00025, 0.95, 0.95, 0.01).minimize(cost)
+    readout_action = tf.reduce_sum(tf.mul(readout, a), reduction_indices = 1)
+    cost = tf.reduce_mean(tf.square(y - readout_action))
+    #train_step = tf.train.RMSPropOptimizer(0.00025, 0.95, 0.95, 0.01).minimize(cost)
+    train_step = tf.train.AdamOptimizer(1e-6).minimize(cost)
 
     # open up a game state to communicate with emulator
-    game_state = pong_fun.GameState()
+    game_state = game.GameState()
 
     # store the previous observations in replay memory
     D = []
@@ -111,6 +114,10 @@ def trainNetwork(s, readout, sess):
             action_index = np.argmax(readout_t)
             a_t[action_index] = 1
 
+        # DEBUG
+        print readout_t,
+        print a_t
+
         # scale down epsilon
         if epsilon > FINAL_EPSILON and t > OBSERVE:
             epsilon -= (INITIAL_EPSILON - FINAL_EPSILON) / EXPLORE
@@ -139,13 +146,13 @@ def trainNetwork(s, readout, sess):
             s_j1_batch = [d[3] for d in minibatch]
 
             y_batch = []
-            readout_batch = readout.eval(feed_dict = {s : s_j1_batch})
+            readout_j1_batch = readout.eval(feed_dict = {s : s_j1_batch})
             for i in range(0, len(minibatch)):
                 # if terminal only equals reward
                 if minibatch[i][4]:
                     y_batch.append(r_batch[i])
                 else:
-                    y_batch.append(r_batch[i] + GAMMA * np.max(readout_batch[i]))
+                    y_batch.append(r_batch[i] + GAMMA * np.max(readout_j1_batch[i]))
 
             # perform gradient step
             train_step.run(feed_dict = {
