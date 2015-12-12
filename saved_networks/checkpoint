@@ -1,0 +1,6 @@
+model_checkpoint_path: "saved_networks/pong-dqn-570000"
+all_model_checkpoint_paths: "saved_networks/pong-dqn-530000"
+all_model_checkpoint_paths: "saved_networks/pong-dqn-540000"
+all_model_checkpoint_paths: "saved_networks/pong-dqn-550000"
+all_model_checkpoint_paths: "saved_networks/pong-dqn-560000"
+all_model_checkpoint_paths: "saved_networks/pong-dqn-570000"

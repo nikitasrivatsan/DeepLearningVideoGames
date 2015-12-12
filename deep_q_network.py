@@ -14,7 +14,7 @@ OBSERVE = 50000. # timesteps to observe before training
 EXPLORE = 500000. # frames over which to anneal epsilon
 FINAL_EPSILON = 0.1 # final value of epsilon
 INITIAL_EPSILON = 1.0 # starting value of epsilon
-REPLAY_MEMORY = 1000000 # number of previous transitions to remember
+REPLAY_MEMORY = 500000 # number of previous transitions to remember
 BATCH = 32 # size of minibatch
 K = 4 # only select an action every Kth frame, repeat prev for others
 
@@ -75,7 +75,7 @@ def trainNetwork(s, readout, sess):
     # define the cost function
     a = tf.placeholder("float", [None, ACTIONS])
     y = tf.placeholder("float", [None])
-    cost = tf.reduce_sum(tf.square(y - tf.reduce_max(tf.mul(readout, a), reduction_indices = 1)))
+    cost = tf.reduce_mean(tf.square(tf.maximum(tf.minimum(y - tf.reduce_max(tf.mul(readout, a), reduction_indices = 1), 1), -1)))
     train_step = tf.train.RMSPropOptimizer(0.00025, 0.95, 0.95, 0.01).minimize(cost)
 
     # open up a game state to communicate with emulator
@@ -95,7 +95,7 @@ def trainNetwork(s, readout, sess):
     checkpoint = tf.train.get_checkpoint_state("saved_networks")
     if checkpoint and checkpoint.model_checkpoint_path:
         saver.restore(sess, checkpoint.model_checkpoint_path)
-        print "Successfully loaded previous model"
+        print "Successfully loaded:", checkpoint.model_checkpoint_path
 
     epsilon = INITIAL_EPSILON
     t = 0
@@ -130,7 +130,7 @@ def trainNetwork(s, readout, sess):
         # only train if done observing
         if t > OBSERVE:
             # sample a minibatch to train on
-            minibatch = random.sample(D, BATCH) if len(D) > BATCH else D
+            minibatch = random.sample(D, BATCH)
 
             # get the batch variables
             s_j_batch = [d[0] for d in minibatch]

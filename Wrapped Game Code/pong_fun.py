@@ -28,7 +28,7 @@ font = pygame.font.SysFont("calibri",40)
 
 ai_speed = 15.
 
-HIT_REWARD = 0
+HIT_REWARD = 1
 LOSE_REWARD = -1
 SCORE_REWARD = 1
 
@@ -82,10 +82,12 @@ class GameState:
                 else:
                     self.bar2_y == self.circle_y + 7.5
             
+            # bounds of movement
             if self.bar1_y >= 420.: self.bar1_y = 420.
             elif self.bar1_y <= 10. : self.bar1_y = 10.
             if self.bar2_y >= 420.: self.bar2_y = 420.
             elif self.bar2_y <= 10.: self.bar2_y = 10.
+
             #since i don't know anything about collision, ball hitting bars goes like this.
             if self.circle_x <= self.bar1_x + 10.:
                 if self.circle_y >= self.bar1_y - 7.5 and self.circle_y <= self.bar1_y + 42.5:
@@ -96,6 +98,7 @@ class GameState:
                 if self.circle_y >= self.bar2_y - 7.5 and self.circle_y <= self.bar2_y + 42.5:
                     self.circle_x = 605.
                     self.speed_x = -self.speed_x
+
             if self.circle_x < 5.:
                 self.bar2_score += 1
                 reward = LOSE_REWARD
@@ -106,6 +109,7 @@ class GameState:
                 reward = SCORE_REWARD
                 self.circle_x, self.circle_y = 307.5, 232.5
                 self.bar1_y, self.bar2_y = 215., 215.
+
             if self.circle_y <= 10.:
                 self.speed_y = -self.speed_y
                 self.circle_y = 10.
