@@ -1,0 +1,56 @@
+%% ON VM
+sudo mount -t vboxsf deeplearningvideogames /code
+
+%%FROM WINDOWS COMMAND LINE
+docker-machine env --shell cmd default > a.cmd
+call a.cmd
+del a.cmd
+
+docker run -it -v /code:/code b.gcr.io/tensorflow/tensorflow
+
+echo "deb http://ppa.launchpad.net/jon-severinsson/ffmpeg/ubuntu quantal main" >> /etc/apt/sources.list
+run	apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 1DB8ADC1CFCA9579
+
+
+apt-get update
+apt-get install -y -q wget curl
+apt-get install -y -q build-essential
+apt-get install -y -q cmake
+apt-get install -y -q python2.7 python2.7-dev
+wget 'https://pypi.python.org/packages/2.7/s/setuptools/setuptools-0.6c11-py2.7.egg' && /bin/sh setuptools-0.6c11-py2.7.egg && rm -f setuptools-0.6c11-py2.7.egg
+curl 'https://raw.github.com/pypa/pip/master/contrib/get-pip.py' | python2.7
+pip install numpy
+apt-get install -y -q libavformat-dev libavcodec-dev libavfilter-dev libswscale-dev
+apt-get install -y -q libjpeg-dev libpng-dev libtiff-dev libjasper-dev zlib1g-dev libopenexr-dev libxine-dev libeigen3-dev libtbb-dev
+
+sudo apt-get -y -q install build-essential cmake git pkg-config
+sudo apt-get -y -q install libjpeg8-dev libtiff4-dev libjasper-dev libpng12-dev
+sudo apt-get -y -q install libgtk2.0-dev
+sudo apt-get -y -q install libavcodec-dev libavformat-dev libswscale-dev libv4l-dev
+sudo apt-get -y -q install libatlas-base-dev gfortran
+
+cd ..
+git clone https://github.com/Itseez/opencv.git
+cd opencv
+git checkout 3.0.0
+cd ..
+git clone https://github.com/Itseez/opencv_contrib.git
+cd opencv_contrib
+git checkout 3.0.0
+cd ../opencv
+mkdir build
+cd build
+cmake -D CMAKE_BUILD_TYPE=RELEASE \
+	-D CMAKE_INSTALL_PREFIX=/usr/local \
+	-D INSTALL_C_EXAMPLES=ON \
+	-D INSTALL_PYTHON_EXAMPLES=ON \
+	-D OPENCV_EXTRA_MODULES_PATH=~/opencv_contrib/modules \
+	-D BUILD_EXAMPLES=ON ..
+
+make -j4
+sudo make install
+sudo ldconfig
+
+
+
+sudo apt-get install python-pygame
