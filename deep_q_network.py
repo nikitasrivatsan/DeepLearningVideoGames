@@ -70,9 +70,9 @@ def createNetwork():
     # readout layer
     readout = tf.matmul(h_fc1, W_fc2) + b_fc2
 
-    return s, readout
+    return s, readout, h_fc1
 
-def trainNetwork(s, readout, sess):
+def trainNetwork(s, readout, h_fc1, sess):
     # define the cost function
     a = tf.placeholder("float", [None, ACTIONS])
     y = tf.placeholder("float", [None])
@@ -86,6 +86,10 @@ def trainNetwork(s, readout, sess):
 
     # store the previous observations in replay memory
     D = []
+
+    # printing
+    a_file = open("logs/readout.txt", 'w')
+    h_file = open("logs/hidden.txt", 'w')
 
     # get the first state by doing nothing and preprocess the image to 80x80x4
     x_t, r_0, terminal = game_state.frame_step([1, 0, 0])
@@ -124,8 +128,8 @@ def trainNetwork(s, readout, sess):
 
         for i in range(0, K):
             # run the selected action and observe next state and reward
-            x_t1, r_t, terminal = game_state.frame_step(a_t)
-            x_t1 = cv2.cvtColor(cv2.resize(x_t1, (80, 80)), cv2.COLOR_BGR2GRAY)
+            x_t1_col, r_t, terminal = game_state.frame_step(a_t)
+            x_t1 = cv2.cvtColor(cv2.resize(x_t1_col, (80, 80)), cv2.COLOR_BGR2GRAY)
             x_t1 = np.reshape(x_t1, (80, 80, 1))
             s_t1 = np.append(x_t1, s_t[:,:,1:], axis = 2)
 
@@ -178,10 +182,16 @@ def trainNetwork(s, readout, sess):
             state = "train"
         print "TIMESTEP", t, "/ STATE", state, "/ EPSILON", epsilon, "/ ACTION", action_index, "/ REWARD", r_t, "/ Q_MAX %e" % np.max(readout_t)
 
+        # write info to files
+        if t % 1000 == 0:
+            a_file.write(",".join([str(x) for x in readout_t]) + '\n')
+            h_file.write(",".join([str(x) for x in h_fc1.eval(feed_dict={s:[s_t]})[0]]) + '\n')
+            cv2.imwrite("logs/frame" + str(t) + ".png", x_t1_col)
+
 def playGame():
     sess = tf.InteractiveSession()
-    s, readout = createNetwork()
-    trainNetwork(s, readout, sess)
+    s, readout, h_fc1 = createNetwork()
+    trainNetwork(s, readout, h_fc1, sess)
 
 def main():
     playGame()
