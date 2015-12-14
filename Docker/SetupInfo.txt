@@ -1,0 +1,24 @@
+WINDOWS SETUP INFO
+
+%% ON VM
+cd ..
+mkdir /code
+sudo mount -t vboxsf deeplearningvideogames /code
+echo "nameserver 8.8.8.8" > /etc/resolv.conf 
+
+%%FROM WINDOWS COMMAND LINE
+docker-machine env --shell cmd default > a.cmd
+call a.cmd
+del a.cmd
+
+#Install Xming, add to path, etc.
+Xming.exe :0 -multiwindow -clipboard -ac
+
+#Add Dockerfile to its own directory
+docker build -t launch .
+docker run -it -m=4294967296 -c 2 -e DISPLAY=192.168.99.1:0 -v /code:/code launch
+
+
+
+
+
