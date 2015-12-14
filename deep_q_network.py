@@ -118,10 +118,6 @@ def trainNetwork(s, readout, h_fc1, sess):
             action_index = np.argmax(readout_t)
             a_t[action_index] = 1
 
-        # DEBUG
-        print readout_t,
-        print a_t
-
         # scale down epsilon
         if epsilon > FINAL_EPSILON and t > OBSERVE:
             epsilon -= (INITIAL_EPSILON - FINAL_EPSILON) / EXPLORE
