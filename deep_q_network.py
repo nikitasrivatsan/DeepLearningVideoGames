@@ -9,6 +9,7 @@ import dummy_game
 import random
 import numpy as np
 
+GAME = 'pong' # the name of the game being played for log files
 GAMMA = 0.99 # decay rate of past observations
 ACTIONS = 3 # number of valid actions
 OBSERVE = 50000. # timesteps to observe before training
@@ -166,7 +167,7 @@ def trainNetwork(s, readout, h_fc1, sess):
 
         # save progress every 10000 iterations
         if t % 10000 == 0:
-            saver.save(sess, 'saved_networks/pong-dqn', global_step = t)
+            saver.save(sess, 'saved_networks/' + GAME + '-dqn', global_step = t)
 
         # print info
         state = ""
