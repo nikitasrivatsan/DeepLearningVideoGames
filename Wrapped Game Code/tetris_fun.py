@@ -154,7 +154,7 @@ PIECES = {'S': S_SHAPE_TEMPLATE,
           'T': T_SHAPE_TEMPLATE}
 
 
-class TetrisState:
+class GameState:
     def __init__(self):
         global FPSCLOCK, DISPLAYSURF, BASICFONT, BIGFONT
         pygame.init()
@@ -177,13 +177,16 @@ class TetrisState:
 
         self.fallingPiece = self.getNewPiece()
         self.nextPiece = self.getNewPiece()
+
+        self.frame_step([1,0,0,0,0,0])
+        
         pygame.display.update()
 
     def frame_step(self,input):
         self.movingLeft = False
         self.movingRight = False
         
-        #left is 1000, up is 0100, right is 0010, space is 0001
+        #none is 100000, left is 010000, up is 001000, right is 000100, space is 000010, q is 000001
         if self.fallingPiece == None:
             # No falling piece in play, so start a new piece at the top
             self.fallingPiece = self.nextPiece
@@ -195,26 +198,31 @@ class TetrisState:
 
 
             # moving the piece sideways
-        if (input[0] == 1) and self.isValidPosition(adjX=-1):
+        if (input[1] == 1) and self.isValidPosition(adjX=-1):
             self.fallingPiece['x'] -= 1
             self.movingLeft = True
             self.movingRight = False
             self.lastMoveSidewaysTime = time.time()
 
-        elif (input[2] == 1) and self.isValidPosition(adjX=1):
+        elif (input[3] == 1) and self.isValidPosition(adjX=1):
             self.fallingPiece['x'] += 1
             self.movingRight = True
             self.movingLeft = False
             self.lastMoveSidewaysTime = time.time()
 
         # rotating the piece (if there is room to rotate)
-        elif (input[1] == 1):
+        elif (input[2] == 1):
             self.fallingPiece['rotation'] = (self.fallingPiece['rotation'] + 1) % len(PIECES[self.fallingPiece['shape']])
             if not self.isValidPosition():
                 self.fallingPiece['rotation'] = (self.fallingPiece['rotation'] - 1) % len(PIECES[self.fallingPiece['shape']])
 
+        elif (input[5] == 1): # rotate the other direction
+            self.fallingPiece['rotation'] = (self.fallingPiece['rotation'] - 1) % len(PIECES[self.fallingPiece['shape']])
+            if not self.isValidPosition():
+                self.fallingPiece['rotation'] = (self.fallingPiece['rotation'] + 1) % len(PIECES[self.fallingPiece['shape']])
+
         # move the current piece all the way down
-        elif (input[0] == 3):
+        elif (input[4] == 1):
             self.movingDown = False
             self.movingLeft = False
             self.movingRight = False
@@ -223,17 +231,17 @@ class TetrisState:
                     break
             self.fallingPiece['y'] += i - 1
 
-            # handle moving the piece because of user input
-            if (self.movingLeft or self.movingRight):
-                if self.movingLeft and self.isValidPosition(adjX=-1):
-                    self.fallingPiece['x'] -= 1
-                elif self.movingRight and self.isValidPosition(adjX=1):
-                    self.fallingPiece['x'] += 1
-                self.lastMoveSidewaysTime = time.time()
+        # handle moving the piece because of user input
+        if (self.movingLeft or self.movingRight):
+            if self.movingLeft and self.isValidPosition(adjX=-1):
+                self.fallingPiece['x'] -= 1
+            elif self.movingRight and self.isValidPosition(adjX=1):
+                self.fallingPiece['x'] += 1
+            self.lastMoveSidewaysTime = time.time()
 
-            if self.movingDown:
-                self.fallingPiece['y'] += 1
-                self.lastMoveDownTime = time.time()
+        if self.movingDown:
+            self.fallingPiece['y'] += 1
+            self.lastMoveDownTime = time.time()
 
         # let the piece fall if it is time to fall
         # see if the piece has landed
@@ -246,7 +254,6 @@ class TetrisState:
         else:
             # piece did not land, just move the piece down
             self.fallingPiece['y'] += 1
-            self.lastFallTime = time.time()
 
         # drawing everything on the screen
         DISPLAYSURF.fill(BGCOLOR)
@@ -286,7 +293,7 @@ class TetrisState:
         # fill in the self.board based on piece's location, shape, and rotation
         for x in range(TEMPLATEWIDTH):
             for y in range(TEMPLATEHEIGHT):
-                if PIECES[self.fallingPiece['shape']][se.ffallingPiece['rotation']][y][x] != BLANK:
+                if PIECES[self.fallingPiece['shape']][self.fallingPiece['rotation']][y][x] != BLANK:
                     self.board[x + self.fallingPiece['x']][y + self.fallingPiece['y']] = self.fallingPiece['color']
 
 
@@ -328,7 +335,7 @@ class TetrisState:
         numLinesRemoved = 0
         y = BOARDHEIGHT - 1 # start y at the bottom of the self.board
         while y >= 0:
-            if isCompleteLine(y):
+            if self.isCompleteLine(y):
                 # Remove the line and pull boxes down by one line.
                 for pullDownY in range(y, 0, -1):
                     for x in range(BOARDWIDTH):
@@ -390,17 +397,17 @@ class TetrisState:
         DISPLAYSURF.blit(levelSurf, levelRect)
 
 
-    def drawPiece(self, pixelx=None, pixely=None):
-        shapeToDraw = PIECES[self.fallingPiece['shape']][self.fallingPiece['rotation']]
+    def drawPiece(piece, pixelx=None, pixely=None):
+        shapeToDraw = PIECES[piece['shape']][piece['rotation']]
         if pixelx == None and pixely == None:
             # if pixelx & pixely hasn't been specified, use the location stored in the piece data structure
-            pixelx, pixely = self.convertToPixelCoords(self.fallingPiece['x'], self.fallingPiece['y'])
+            pixelx, pixely = self.convertToPixelCoords(piece['x'], piece['y'])
 
         # draw each of the boxes that make up the piece
         for x in range(TEMPLATEWIDTH):
             for y in range(TEMPLATEHEIGHT):
                 if shapeToDraw[y][x] != BLANK:
-                    self.drawBox(None, None, self.fallingPiece['color'], pixelx + (x * BOXSIZE), pixely + (y * BOXSIZE))
+                    self.drawBox(None, None, piece['color'], pixelx + (x * BOXSIZE), pixely + (y * BOXSIZE))
 
 
     def drawNextPiece(self):
@@ -414,4 +421,4 @@ class TetrisState:
 
 
 
-a = TetrisState()
+a = GameState()

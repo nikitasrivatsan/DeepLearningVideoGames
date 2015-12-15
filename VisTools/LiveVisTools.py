@@ -10,14 +10,15 @@ import numpy as np
 
 
 DPI = 96;
+STEP_SIZE = 1;
 
 class plot_state:
     def __init__(self):        
         self.X = np.zeros(1)
         self.reward = np.zeros(1)
         self.max_q = np.zeros(1)
-        self.rholder = np.zeros(100)
-        self.qholder = np.zeros(100)
+        self.rholder = np.zeros(STEP_SIZE)
+        self.qholder = np.zeros(STEP_SIZE)
 
         plt.ion()
         
@@ -52,15 +53,19 @@ class plot_state:
         self.counter = 0
         
 
-    def update(self,r,q,s):
+    def update(self,r,q,c1,c2,c3):
+        #Conv1 layer is 20x20x32
+        #Conv2 layer is 5x5x64
+        #Conv3 layer is 3x3x64
         
         self.rholder[self.counter] = r
         self.qholder[self.counter] = q
-        self.counter += 1
+        self.counter += STEP_SIZE
         
-        if self.counter == 1:
+        if self.counter == STEP_SIZE:
             self.counter = 0
 
+            
             plt.figure("Network State")
             self.l1.imshow(s[:,:,0],aspect = 2.5)
             self.l2.imshow(s[:,:,1],aspect = 2.5)
@@ -69,13 +74,13 @@ class plot_state:
             plt.draw()
 
             plt.figure("Performance")
-            self.X = np.append(self.X,np.amax(self.X) + 100)
+            self.X = np.append(self.X,np.amax(self.X) + STEP_SIZE)
 
             self.max_q = np.append(self.max_q,np.mean(self.qholder))
             self.reward = np.append(self.reward,np.mean(self.rholder))
             
-            self.qholder = np.zeros(100)
-            self.rholder = np.zeros(100)
+            self.qholder = np.zeros(STEP_SIZE)
+            self.rholder = np.zeros(STEP_SIZE)
             
             self.graph_q.set_xdata(self.X)
             self.graph_q.set_ydata(self.max_q)
