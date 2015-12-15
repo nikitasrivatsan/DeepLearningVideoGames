@@ -182,6 +182,25 @@ class GameState:
         
         pygame.display.update()
 
+    def reinit(self):
+        self.board = self.getBlankBoard()
+        self.lastMoveDownTime = time.time()
+        self.lastMoveSidewaysTime = time.time()
+        self.lastFallTime = time.time()
+        self.movingDown = False # note: there is no movingUp variable
+        self.movingLeft = False
+        self.movingRight = False
+        self.score = 0
+        self.level, self.fallFreq = self.calculateLevelAndFallFreq()
+
+        self.fallingPiece = self.getNewPiece()
+        self.nextPiece = self.getNewPiece()
+
+        self.frame_step([1,0,0,0,0,0])
+        
+        pygame.display.update()
+
+        
     def frame_step(self,input):
         self.movingLeft = False
         self.movingRight = False
@@ -200,6 +219,8 @@ class GameState:
                 image_data = pygame.surfarray.array3d(pygame.display.get_surface())
                 reward = -1
                 terminal = True
+                
+                self.reinit()
                 return image_data, reward, terminal # can't fit a new piece on the self.board, so game over
 
 
@@ -427,3 +448,7 @@ class GameState:
         DISPLAYSURF.blit(nextSurf, nextRect)
         # draw the "next" piece
         self.drawPiece(self.nextPiece,pixelx=WINDOWWIDTH-120, pixely=100)
+
+a = GameState()
+for i in range(1000):
+    a.frame_step([1, 0, 0, 0, 0, 0])
