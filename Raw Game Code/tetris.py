@@ -291,7 +291,7 @@ def runGame():
         DISPLAYSURF.fill(BGCOLOR)
         drawBoard(board)
         drawStatus(score, level)
-        drawNextPiece(nextPiece)
+        drawNextPiece(nextPiece)#Here
         if fallingPiece != None:
             drawPiece(fallingPiece)
 
