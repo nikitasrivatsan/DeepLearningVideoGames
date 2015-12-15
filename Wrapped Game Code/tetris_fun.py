@@ -186,15 +186,21 @@ class GameState:
         self.movingLeft = False
         self.movingRight = False
         
+        reward = 0
+        terminal = False
+        
         #none is 100000, left is 010000, up is 001000, right is 000100, space is 000010, q is 000001
         if self.fallingPiece == None:
             # No falling piece in play, so start a new piece at the top
             self.fallingPiece = self.nextPiece
             self.nextPiece = self.getNewPiece()
             self.lastFallTime = time.time() # reset self.lastFallTime
-
+            
             if not self.isValidPosition():
-                return # can't fit a new piece on the self.board, so game over
+                image_data = pygame.surfarray.array3d(pygame.display.get_surface())
+                reward = -1
+                terminal = True
+                return image_data, reward, terminal # can't fit a new piece on the self.board, so game over
 
 
             # moving the piece sideways
@@ -248,7 +254,8 @@ class GameState:
         if not self.isValidPosition(adjY=1):
             # falling piece has landed, set it on the self.board
             self.addToBoard()
-            self.score += self.removeCompleteLines()
+            reward = self.removeCompleteLines()
+            self.score += reward
             self.level, self.fallFreq = self.calculateLevelAndFallFreq()
             self.fallingPiece = None
         else:
@@ -422,7 +429,31 @@ class GameState:
 
 
 a = GameState()
-a.frame_step([0,0,0,0,0,1])
-a.frame_step([1,0,0,0,0,0])
-a.frame_step([1,0,0,0,0,0])
-a.frame_step([1,0,0,0,0,0])
+
+from msvcrt import getch
+import msvcrt
+#none is 100000, left is 010000, up is 001000, right is 000100, space is 000010, q is 000001
+
+for i in range (100000):
+    a.frame_step([1, 0, 0, 0, 0, 0,])
+
+'''
+for i in range(255):
+    print i
+    key = ord(msvcrt.getch())
+    if key == 224:
+        key = ord(getch())
+        if key == 72: #up
+            input = [0, 0, 1, 0, 0, 0]
+        elif key == 75: #left
+            input = [0, 1, 0, 0, 0, 0]
+        elif key == 77: #right
+            input = [0, 0, 0, 1, 0, 0]
+    elif key == 32: #space
+        input = [0, 0, 0, 0, 1, 0]
+    elif key == 113: #Q
+        input = [0, 0, 0, 0, 0, 1]
+    elif key == 80: #down
+        input = [1, 0, 0, 0, 0, 0]
+    a.frame_step(input)
+'''
