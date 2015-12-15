@@ -261,7 +261,7 @@ class GameState:
         self.drawStatus()
         self.drawNextPiece()
         if self.fallingPiece != None:
-           self.drawPiece()
+           self.drawPiece(self.fallingPiece)
 
         pygame.display.update()
         FPSCLOCK.tick(FPS)
@@ -397,7 +397,7 @@ class GameState:
         DISPLAYSURF.blit(levelSurf, levelRect)
 
 
-    def drawPiece(piece, pixelx=None, pixely=None):
+    def drawPiece(self,piece, pixelx=None, pixely=None):
         shapeToDraw = PIECES[piece['shape']][piece['rotation']]
         if pixelx == None and pixely == None:
             # if pixelx & pixely hasn't been specified, use the location stored in the piece data structure
@@ -422,3 +422,7 @@ class GameState:
 
 
 a = GameState()
+a.frame_step([0,0,0,0,0,1])
+a.frame_step([1,0,0,0,0,0])
+a.frame_step([1,0,0,0,0,0])
+a.frame_step([1,0,0,0,0,0])
