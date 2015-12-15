@@ -4,14 +4,15 @@ import tensorflow as tf
 import cv2
 import sys
 sys.path.append("Wrapped Game Code/")
-import pong_fun as game # whichever is imported "as game" will be used
+import pong_fun # whichever is imported "as game" will be used
 import dummy_game
+import tetris_fun as game
 import random
 import numpy as np
 
-GAME = 'pong' # the name of the game being played for log files
+GAME = 'tetris' # the name of the game being played for log files
+ACTIONS = 6 # number of valid actions
 GAMMA = 0.99 # decay rate of past observations
-ACTIONS = 3 # number of valid actions
 OBSERVE = 50000. # timesteps to observe before training
 EXPLORE = 500000. # frames over which to anneal epsilon
 FINAL_EPSILON = 0.1 # final value of epsilon
@@ -89,18 +90,20 @@ def trainNetwork(s, readout, h_fc1, sess):
     D = []
 
     # printing
-    a_file = open("logs/readout.txt", 'w')
-    h_file = open("logs/hidden.txt", 'w')
+    a_file = open("logs_tetris/readout.txt", 'w')
+    h_file = open("logs_tetris/hidden.txt", 'w')
 
     # get the first state by doing nothing and preprocess the image to 80x80x4
-    x_t, r_0, terminal = game_state.frame_step([1, 0, 0])
+    do_nothing = np.zeros(ACTIONS)
+    do_nothing[0] = 1
+    x_t, r_0, terminal = game_state.frame_step(do_nothing)
     x_t = cv2.cvtColor(cv2.resize(x_t, (80, 80)), cv2.COLOR_BGR2GRAY)
     s_t = np.stack((x_t, x_t, x_t, x_t), axis = 2)
 
     # saving and loading networks
     saver = tf.train.Saver()
     sess.run(tf.initialize_all_variables())
-    checkpoint = tf.train.get_checkpoint_state("saved_networks")
+    checkpoint = tf.train.get_checkpoint_state("saved_tetris")
     if checkpoint and checkpoint.model_checkpoint_path:
         saver.restore(sess, checkpoint.model_checkpoint_path)
         print "Successfully loaded:", checkpoint.model_checkpoint_path

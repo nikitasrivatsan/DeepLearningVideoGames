@@ -273,6 +273,8 @@ class GameState:
         pygame.display.update()
         FPSCLOCK.tick(FPS)
 
+        image_data = pygame.surfarray.array3d(pygame.display.get_surface())
+        return image_data, reward, terminal
 
     def makeTextObjs(self,text, font, color):
         surf = font.render(text, True, color)
@@ -425,35 +427,3 @@ class GameState:
         DISPLAYSURF.blit(nextSurf, nextRect)
         # draw the "next" piece
         self.drawPiece(self.nextPiece,pixelx=WINDOWWIDTH-120, pixely=100)
-
-
-
-a = GameState()
-
-from msvcrt import getch
-import msvcrt
-#none is 100000, left is 010000, up is 001000, right is 000100, space is 000010, q is 000001
-
-for i in range (100000):
-    a.frame_step([1, 0, 0, 0, 0, 0,])
-
-'''
-for i in range(255):
-    print i
-    key = ord(msvcrt.getch())
-    if key == 224:
-        key = ord(getch())
-        if key == 72: #up
-            input = [0, 0, 1, 0, 0, 0]
-        elif key == 75: #left
-            input = [0, 1, 0, 0, 0, 0]
-        elif key == 77: #right
-            input = [0, 0, 0, 1, 0, 0]
-    elif key == 32: #space
-        input = [0, 0, 0, 0, 1, 0]
-    elif key == 113: #Q
-        input = [0, 0, 0, 0, 0, 1]
-    elif key == 80: #down
-        input = [1, 0, 0, 0, 0, 0]
-    a.frame_step(input)
-'''
