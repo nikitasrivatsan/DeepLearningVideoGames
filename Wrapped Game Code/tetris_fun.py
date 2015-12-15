@@ -417,7 +417,7 @@ class GameState:
         nextRect.topleft = (WINDOWWIDTH - 120, 80)
         DISPLAYSURF.blit(nextSurf, nextRect)
         # draw the "next" piece
-        self.drawPiece(pixelx=WINDOWWIDTH-120, pixely=100)
+        self.drawPiece(self.nextPiece,pixelx=WINDOWWIDTH-120, pixely=100)
 
 
 
