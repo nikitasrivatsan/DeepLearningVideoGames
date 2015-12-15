@@ -13,8 +13,8 @@ import LiveVisTools as vis
 
 GAMMA = 0.99 # decay rate of past observations
 ACTIONS = 3 # number of valid actions
-OBSERVE = 50000. # timesteps to observe before training
-EXPLORE = 500000. # frames over which to anneal epsilon
+OBSERVE = 200. # timesteps to observe before training
+EXPLORE = 10. # frames over which to anneal epsilon
 FINAL_EPSILON = 0.1 # final value of epsilon
 INITIAL_EPSILON = 1.0 # starting value of epsilon
 REPLAY_MEMORY = 500000 # number of previous transitions to remember
@@ -72,9 +72,9 @@ def createNetwork():
     # readout layer
     readout = tf.matmul(h_fc1, W_fc2) + b_fc2
 
-    return s, readout, h_fc1
+    return s, readout, h_conv1, h_pool1,  h_conv2, h_pool2, h_conv3, h_pool3, h_pool3_flat, h_fc1
 
-def trainNetwork(s, readout, h_fc1, sess):
+def trainNetwork(s, readout, h_conv1, h_pool1,  h_conv2, h_pool2, h_conv3, h_pool3, h_pool3_flat, h_fc1, sess):
     # define the cost function
     a = tf.placeholder("float", [None, ACTIONS])
     y = tf.placeholder("float", [None])
@@ -91,13 +91,16 @@ def trainNetwork(s, readout, h_fc1, sess):
     D = []
 
     # printing
-    a_file = open("logs/readout.txt", 'w')
-    h_file = open("logs/hidden.txt", 'w')
+    #a_file = open("logs/readout.txt", 'w')
+    #h_file = open("logs/hidden.txt", 'w')
 
     # get the first state by doing nothing and preprocess the image to 80x80x4
     x_t, r_0, terminal = game_state.frame_step([1, 0, 0])
     x_t = cv2.cvtColor(cv2.resize(x_t, (80, 80)), cv2.COLOR_BGR2GRAY)
     s_t = np.stack((x_t, x_t, x_t, x_t), axis = 2)
+
+    epsilon = INITIAL_EPSILON
+    t = 0
 
     # saving and loading networks
     saver = tf.train.Saver()
@@ -107,8 +110,7 @@ def trainNetwork(s, readout, h_fc1, sess):
         saver.restore(sess, checkpoint.model_checkpoint_path)
         print "Successfully loaded:", checkpoint.model_checkpoint_path
 
-    epsilon = INITIAL_EPSILON
-    t = 0
+    
     while "pigs" != "fly":
         # choose an action epsilon greedily
         readout_t = readout.eval(feed_dict = {s : [s_t]})[0]
@@ -121,9 +123,9 @@ def trainNetwork(s, readout, h_fc1, sess):
             action_index = np.argmax(readout_t)
             a_t[action_index] = 1
 
-        # DEBUG
-        print readout_t,
-        print a_t
+##        # DEBUG
+##        print readout_t,
+##        print a_t
 
         # scale down epsilon
         if epsilon > FINAL_EPSILON and t > OBSERVE:
@@ -143,42 +145,42 @@ def trainNetwork(s, readout, h_fc1, sess):
                 D.pop(0)
 
         #Update graphs
-        vis_state.update(r_t,np.max(readout_t),s_t1)
+        vis_state.update(r_t,np.max(readout_t),h_conv1.eval(feed_dict={s:[s_t]})[0],h_conv2.eval(feed_dict={s:[s_t]})[0],h_conv3.eval(feed_dict={s:[s_t]})[0])
             
 
-        # only train if done observing
-        if t > OBSERVE:
-            # sample a minibatch to train on
-            minibatch = random.sample(D, BATCH)
-
-            # get the batch variables
-            s_j_batch = [d[0] for d in minibatch]
-            a_batch = [d[1] for d in minibatch]
-            r_batch = [d[2] for d in minibatch]
-            s_j1_batch = [d[3] for d in minibatch]
-
-            y_batch = []
-            readout_j1_batch = readout.eval(feed_dict = {s : s_j1_batch})
-            for i in range(0, len(minibatch)):
-                # if terminal only equals reward
-                if minibatch[i][4]:
-                    y_batch.append(r_batch[i])
-                else:
-                    y_batch.append(r_batch[i] + GAMMA * np.max(readout_j1_batch[i]))
-
-            # perform gradient step
-            train_step.run(feed_dict = {
-                y : y_batch,
-                a : a_batch,
-                s : s_j_batch})
+##        # only train if done observing
+##        if t > OBSERVE:
+##            # sample a minibatch to train on
+##            minibatch = random.sample(D, BATCH)
+##
+##            # get the batch variables
+##            s_j_batch = [d[0] for d in minibatch]
+##            a_batch = [d[1] for d in minibatch]
+##            r_batch = [d[2] for d in minibatch]
+##            s_j1_batch = [d[3] for d in minibatch]
+##
+##            y_batch = []
+##            readout_j1_batch = readout.eval(feed_dict = {s : s_j1_batch})
+##            for i in range(0, len(minibatch)):
+##                # if terminal only equals reward
+##                if minibatch[i][4]:
+##                    y_batch.append(r_batch[i])
+##                else:
+##                    y_batch.append(r_batch[i] + GAMMA * np.max(readout_j1_batch[i]))
+##
+##            # perform gradient step
+##            train_step.run(feed_dict = {
+##                y : y_batch,
+##                a : a_batch,
+##                s : s_j_batch})
 
         # update the old values
         s_t = s_t1
         t += K
 
         # save progress every 10000 iterations
-        if t % 10000 == 0:
-            saver.save(sess, 'saved_networks/pong-dqn', global_step = t)
+        #if t % 10000 == 0:
+        #    saver.save(sess, 'saved_networks/pong-dqn', global_step = t)
 
         # print info
         state = ""
@@ -188,18 +190,20 @@ def trainNetwork(s, readout, h_fc1, sess):
             state = "explore"
         else:
             state = "train"
-        print "TIMESTEP", t, "/ STATE", state, "/ EPSILON", epsilon, "/ ACTION", action_index, "/ REWARD", r_t, "/ Q_MAX %e" % np.max(readout_t)
+        #print "TIMESTEP", t, "/ STATE", state, "/ EPSILON", epsilon, "/ ACTION", action_index, "/ REWARD", r_t, "/ Q_MAX %e" % np.max(readout_t)
+
+        #print h_conv3.eval(feed_dict={s:[s_t]})[0].shape
 
         # write info to files
-        if t % 1000 == 0:
-            a_file.write(",".join([str(x) for x in readout_t]) + '\n')
-            h_file.write(",".join([str(x) for x in h_fc1.eval(feed_dict={s:[s_t]})[0]]) + '\n')
-            cv2.imwrite("logs/frame" + str(t) + ".png", x_t1_col)
+        #if t % 1000 == 0:
+            #a_file.write(",".join([str(x) for x in readout_t]) + '\n')
+            #h_file.write(",".join([str(x) for x in h_fc1.eval(feed_dict={s:[s_t]})[0]]) + '\n')
+            #cv2.imwrite("logs/frame" + str(t) + ".png", x_t1_col)
 
 def playGame():
     sess = tf.InteractiveSession()
-    s, readout, h_fc1 = createNetwork()
-    trainNetwork(s, readout, h_fc1, sess)
+    s, readout, h_conv1, h_pool1,  h_conv2, h_pool2, h_conv3, h_pool3, h_pool3_flat, h_fc1 = createNetwork()
+    trainNetwork(s, readout, h_conv1, h_pool1,  h_conv2, h_pool2, h_conv3, h_pool3, h_pool3_flat, h_fc1, sess)
 
 def main():
     playGame()

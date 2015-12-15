@@ -3,14 +3,18 @@
 
 import numpy
 import pygame
+import os
 from pygame.locals import *
 from sys import exit
 import random
 import pygame.surfarray as surfarray
 import matplotlib.pyplot as plt
 
+position = 5, 325
+os.environ['SDL_VIDEO_WINDOW_POS'] = str(position[0]) + "," + str(position[1])
 pygame.init()
 screen = pygame.display.set_mode((640,480),0,32)
+#screen = pygame.display.set_mode((640,480),pygame.NOFRAME)
 #Creating 2 bars, a ball and background.
 back = pygame.Surface((640,480))
 background = back.convert()
@@ -25,6 +29,7 @@ circ = pygame.draw.circle(circ_sur,(255,255,255),(15/2,15/2),15/2)
 circle = circ_sur.convert()
 circle.set_colorkey((0,0,0))
 font = pygame.font.SysFont("calibri",40)
+
 
 ai_speed = 15.
 
