@@ -448,7 +448,3 @@ class GameState:
         DISPLAYSURF.blit(nextSurf, nextRect)
         # draw the "next" piece
         self.drawPiece(self.nextPiece,pixelx=WINDOWWIDTH-120, pixely=100)
-
-a = GameState()
-for i in range(1000):
-    a.frame_step([1, 0, 0, 0, 0, 0])
