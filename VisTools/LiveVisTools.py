@@ -58,7 +58,7 @@ class plot_state:
         self.qholder[self.counter] = q
         self.counter += 1
         
-        if self.counter == 100:
+        if self.counter == 1:
             self.counter = 0
 
             plt.figure("Network State")
