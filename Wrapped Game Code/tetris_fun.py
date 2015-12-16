@@ -292,7 +292,6 @@ class GameState:
            self.drawPiece(self.fallingPiece)
 
         pygame.display.update()
-        FPSCLOCK.tick(FPS)
 
         image_data = pygame.surfarray.array3d(pygame.display.get_surface())
         return image_data, reward, terminal
