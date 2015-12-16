@@ -19,7 +19,7 @@ FINAL_EPSILON = 0.1 # final value of epsilon
 INITIAL_EPSILON = 1.0 # starting value of epsilon
 REPLAY_MEMORY = 100000 # number of previous transitions to remember
 BATCH = 100 # size of minibatch
-K = 1 # only select an action every Kth frame, repeat prev for others
+K = 4 # only select an action every Kth frame, repeat prev for others
 
 def weight_variable(shape):
     initial = tf.truncated_normal(shape, stddev = 0.01)
