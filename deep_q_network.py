@@ -103,10 +103,12 @@ def trainNetwork(s, readout, h_fc1, sess):
     # saving and loading networks
     saver = tf.train.Saver()
     sess.run(tf.initialize_all_variables())
-    checkpoint = tf.train.get_checkpoint_state("saved_tetris")
+    checkpoint = tf.train.get_checkpoint_state("saved_networks")
     if checkpoint and checkpoint.model_checkpoint_path:
         saver.restore(sess, checkpoint.model_checkpoint_path)
         print "Successfully loaded:", checkpoint.model_checkpoint_path
+    else:
+        print "Could not find old network weights"
 
     epsilon = INITIAL_EPSILON
     t = 0
@@ -166,7 +168,7 @@ def trainNetwork(s, readout, h_fc1, sess):
 
         # update the old values
         s_t = s_t1
-        t += K
+        t += 1
 
         # save progress every 10000 iterations
         if t % 10000 == 0:
@@ -183,10 +185,12 @@ def trainNetwork(s, readout, h_fc1, sess):
         print "TIMESTEP", t, "/ STATE", state, "/ EPSILON", epsilon, "/ ACTION", action_index, "/ REWARD", r_t, "/ Q_MAX %e" % np.max(readout_t)
 
         # write info to files
+        '''
         if t % 10000 <= 100:
             a_file.write(",".join([str(x) for x in readout_t]) + '\n')
             h_file.write(",".join([str(x) for x in h_fc1.eval(feed_dict={s:[s_t]})[0]]) + '\n')
             cv2.imwrite("logs/frame" + str(t) + ".png", x_t1_col)
+        '''
 
 def playGame():
     sess = tf.InteractiveSession()
