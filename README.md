@@ -84,6 +84,10 @@ An Amazon Web Services G2 large instance was used to efficiently conduct trainin
 
 ## 6. Results
 
+See these links for videos of the DQN in action:
+[DQN playing a long game of Pong](https://www.youtube.com/watch?v=NE_KKM0e38s)
+[Visualization of convolutional layers and Q function](https://www.youtube.com/watch?v=W9jGIzkVCsM)
+
 We found that for Pong, good results were achieved after approximately 1.38 million time steps, which corresponds to about 25 hours of game time. Qualitatively, the network played at the level of an experienced human player, usually beating the game with a score of 20-2. Figure 2 shows the maximum Q value for the first ~20,000 training steps. To minimize clutter, only maximum Q values corresponding to the first 100 training steps of each consecutive group of 1,250 training steps are shown. As can be seen, the maximum Q value increases over time. This indicates improvement as it means that the network is expecting to receive a greater reward per game as it trains for longer. In theory, as we continue to train the network, the value of the maximum Q value should plateau as the network reaches an optimal state.
 
 ![alt-text](http://imgur.com/rnLVmyd.png "Figure 2")
