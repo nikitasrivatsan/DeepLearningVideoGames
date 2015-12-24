@@ -173,6 +173,7 @@ class GameState:
         self.movingLeft = False
         self.movingRight = False
         self.score = 0
+        self.lines = 0
         self.level, self.fallFreq = self.calculateLevelAndFallFreq()
 
         self.fallingPiece = self.getNewPiece()
@@ -191,6 +192,7 @@ class GameState:
         self.movingLeft = False
         self.movingRight = False
         self.score = 0
+        self.lines = 0
         self.level, self.fallFreq = self.calculateLevelAndFallFreq()
 
         self.fallingPiece = self.getNewPiece()
@@ -217,7 +219,7 @@ class GameState:
             
             if not self.isValidPosition():
                 image_data = pygame.surfarray.array3d(pygame.display.get_surface())
-                reward = -1
+                reward = - self.score
                 terminal = True
                 
                 self.reinit()
@@ -275,8 +277,22 @@ class GameState:
         if not self.isValidPosition(adjY=1):
             # falling piece has landed, set it on the self.board
             self.addToBoard()
-            reward = self.removeCompleteLines()
+
+            cleared = self.removeCompleteLines()
+            if cleared == 1:
+                reward = 40 * self.level
+            elif cleared == 2:
+                reward = 100 * self.level
+            elif cleared == 3:
+                reward = 300 * self.level
+            elif cleared == 4:
+                reward = 1200 * self.level
+
+            reward += self.fallingPiece['y']
+
             self.score += reward
+            self.lines += cleared
+
             self.level, self.fallFreq = self.calculateLevelAndFallFreq()
             self.fallingPiece = None
         else:
@@ -303,7 +319,7 @@ class GameState:
     def calculateLevelAndFallFreq(self):
         # Based on the self.score, return the self.level the player is on and
         # how many seconds pass until a falling piece falls one space.
-        self.level = int(self.score / 10) + 1
+        self.level = min(int(self.lines / 10) + 1, 10)
         self.fallFreq = 0.27 - (self.level * 0.02)
         return self.level, self.fallFreq
 

@@ -14,12 +14,12 @@ GAME = 'tetris' # the name of the game being played for log files
 ACTIONS = 6 # number of valid actions
 GAMMA = 0.99 # decay rate of past observations
 OBSERVE = 50000. # timesteps to observe before training
-EXPLORE = 500000. # frames over which to anneal epsilon
-FINAL_EPSILON = 0.1 # final value of epsilon
+EXPLORE = 1000000. # frames over which to anneal epsilon
+FINAL_EPSILON = 0.05 # final value of epsilon
 INITIAL_EPSILON = 1.0 # starting value of epsilon
-REPLAY_MEMORY = 100000 # number of previous transitions to remember
+REPLAY_MEMORY = 500000 # number of previous transitions to remember
 BATCH = 100 # size of minibatch
-K = 4 # only select an action every Kth frame, repeat prev for others
+K = 1 # only select an action every Kth frame, repeat prev for others
 
 def weight_variable(shape):
     initial = tf.truncated_normal(shape, stddev = 0.01)
@@ -90,8 +90,10 @@ def trainNetwork(s, readout, h_fc1, sess):
     D = []
 
     # printing
-    a_file = open("logs_tetris/readout.txt", 'w')
-    h_file = open("logs_tetris/hidden.txt", 'w')
+    '''
+    a_file = open("logs_" + GAME + "/readout.txt", 'w')
+    h_file = open("logs_" + GAME + "/hidden.txt", 'w')
+    '''
 
     # get the first state by doing nothing and preprocess the image to 80x80x4
     do_nothing = np.zeros(ACTIONS)
@@ -189,7 +191,7 @@ def trainNetwork(s, readout, h_fc1, sess):
         if t % 10000 <= 100:
             a_file.write(",".join([str(x) for x in readout_t]) + '\n')
             h_file.write(",".join([str(x) for x in h_fc1.eval(feed_dict={s:[s_t]})[0]]) + '\n')
-            cv2.imwrite("logs/frame" + str(t) + ".png", x_t1_col)
+            cv2.imwrite("logs_tetris/frame" + str(t) + ".png", x_t1_col)
         '''
 
 def playGame():
