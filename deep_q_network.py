@@ -9,6 +9,7 @@ import dummy_game
 import tetris_fun as game
 import random
 import numpy as np
+from collections import deque
 
 GAME = 'tetris' # the name of the game being played for log files
 ACTIONS = 6 # number of valid actions
@@ -17,7 +18,7 @@ OBSERVE = 50000. # timesteps to observe before training
 EXPLORE = 1000000. # frames over which to anneal epsilon
 FINAL_EPSILON = 0.05 # final value of epsilon
 INITIAL_EPSILON = 1.0 # starting value of epsilon
-REPLAY_MEMORY = 500000 # number of previous transitions to remember
+REPLAY_MEMORY = 590000 # number of previous transitions to remember
 BATCH = 100 # size of minibatch
 K = 1 # only select an action every Kth frame, repeat prev for others
 
@@ -87,7 +88,7 @@ def trainNetwork(s, readout, h_fc1, sess):
     game_state = game.GameState()
 
     # store the previous observations in replay memory
-    D = []
+    D = deque()
 
     # printing
     '''
@@ -140,7 +141,7 @@ def trainNetwork(s, readout, h_fc1, sess):
             # store the transition in D
             D.append((s_t, a_t, r_t, s_t1, terminal))
             if len(D) > REPLAY_MEMORY:
-                D.pop(0)
+                D.popleft()
 
         # only train if done observing
         if t > OBSERVE:
