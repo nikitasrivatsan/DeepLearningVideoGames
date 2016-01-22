@@ -14,12 +14,12 @@ from collections import deque
 GAME = 'tetris' # the name of the game being played for log files
 ACTIONS = 6 # number of valid actions
 GAMMA = 0.99 # decay rate of past observations
-OBSERVE = 50000. # timesteps to observe before training
-EXPLORE = 1000000. # frames over which to anneal epsilon
+OBSERVE = 500000. # timesteps to observe before training
+EXPLORE = 2000000. # frames over which to anneal epsilon
 FINAL_EPSILON = 0.05 # final value of epsilon
 INITIAL_EPSILON = 1.0 # starting value of epsilon
 REPLAY_MEMORY = 590000 # number of previous transitions to remember
-BATCH = 100 # size of minibatch
+BATCH = 32 # size of minibatch
 K = 1 # only select an action every Kth frame, repeat prev for others
 
 def weight_variable(shape):
@@ -47,10 +47,10 @@ def createNetwork():
     W_conv3 = weight_variable([3, 3, 64, 64])
     b_conv3 = bias_variable([64])
     
-    W_fc1 = weight_variable([256, 256])
-    b_fc1 = bias_variable([256])
+    W_fc1 = weight_variable([1600, 512])
+    b_fc1 = bias_variable([512])
 
-    W_fc2 = weight_variable([256, ACTIONS])
+    W_fc2 = weight_variable([512, ACTIONS])
     b_fc2 = bias_variable([ACTIONS])
 
     # input layer
@@ -61,14 +61,15 @@ def createNetwork():
     h_pool1 = max_pool_2x2(h_conv1)
 
     h_conv2 = tf.nn.relu(conv2d(h_pool1, W_conv2, 2) + b_conv2)
-    h_pool2 = max_pool_2x2(h_conv2)
+    #h_pool2 = max_pool_2x2(h_conv2)
 
-    h_conv3 = tf.nn.relu(conv2d(h_pool2, W_conv3, 1) + b_conv3)
-    h_pool3 = max_pool_2x2(h_conv3)
+    h_conv3 = tf.nn.relu(conv2d(h_conv2, W_conv3, 1) + b_conv3)
+    #h_pool3 = max_pool_2x2(h_conv3)
 
-    h_pool3_flat = tf.reshape(h_pool3, [-1, 256])
+    #h_pool3_flat = tf.reshape(h_pool3, [-1, 256])
+    h_conv3_flat = tf.reshape(h_conv3, [-1, 1600])
 
-    h_fc1 = tf.nn.relu(tf.matmul(h_pool3_flat, W_fc1) + b_fc1)
+    h_fc1 = tf.nn.relu(tf.matmul(h_conv3_flat, W_fc1) + b_fc1)
 
     # readout layer
     readout = tf.matmul(h_fc1, W_fc2) + b_fc2
@@ -91,16 +92,15 @@ def trainNetwork(s, readout, h_fc1, sess):
     D = deque()
 
     # printing
-    '''
     a_file = open("logs_" + GAME + "/readout.txt", 'w')
     h_file = open("logs_" + GAME + "/hidden.txt", 'w')
-    '''
 
     # get the first state by doing nothing and preprocess the image to 80x80x4
     do_nothing = np.zeros(ACTIONS)
     do_nothing[0] = 1
     x_t, r_0, terminal = game_state.frame_step(do_nothing)
     x_t = cv2.cvtColor(cv2.resize(x_t, (80, 80)), cv2.COLOR_BGR2GRAY)
+    ret, x_t = cv2.threshold(x_t,1,255,cv2.THRESH_BINARY)
     s_t = np.stack((x_t, x_t, x_t, x_t), axis = 2)
 
     # saving and loading networks
@@ -135,6 +135,7 @@ def trainNetwork(s, readout, h_fc1, sess):
             # run the selected action and observe next state and reward
             x_t1_col, r_t, terminal = game_state.frame_step(a_t)
             x_t1 = cv2.cvtColor(cv2.resize(x_t1_col, (80, 80)), cv2.COLOR_BGR2GRAY)
+            ret, x_t1 = cv2.threshold(x_t1,1,255,cv2.THRESH_BINARY)
             x_t1 = np.reshape(x_t1, (80, 80, 1))
             s_t1 = np.append(x_t1, s_t[:,:,1:], axis = 2)
 
@@ -185,14 +186,14 @@ def trainNetwork(s, readout, h_fc1, sess):
             state = "explore"
         else:
             state = "train"
-        print "TIMESTEP", t, "/ STATE", state, "/ EPSILON", epsilon, "/ ACTION", action_index, "/ REWARD", r_t, "/ Q_MAX %e" % np.max(readout_t)
+        print "TIMESTEP", t, "/ STATE", state, "/ LINES", game_state.total_lines, "/ EPSILON", epsilon, "/ ACTION", action_index, "/ REWARD", r_t, "/ Q_MAX %e" % np.max(readout_t)
 
         # write info to files
         '''
         if t % 10000 <= 100:
             a_file.write(",".join([str(x) for x in readout_t]) + '\n')
             h_file.write(",".join([str(x) for x in h_fc1.eval(feed_dict={s:[s_t]})[0]]) + '\n')
-            cv2.imwrite("logs_tetris/frame" + str(t) + ".png", x_t1_col)
+            cv2.imwrite("logs_tetris/frame" + str(t) + ".png", x_t1)
         '''
 
 def playGame():

@@ -43,26 +43,26 @@ assert len(COLORS) == len(LIGHTCOLORS) # each color must have light color
 TEMPLATEWIDTH = 5
 TEMPLATEHEIGHT = 5
 
-S_SHAPE_TEMPLATE = [['.....',
-                     '.....',
-                     '..OO.',
+S_SHAPE_TEMPLATE = [['..OO.',
                      '.OO..',
+                     '.....',
+                     '.....',
                      '.....'],
-                    ['.....',
-                     '..O..',
+                    ['..O..',
                      '..OO.',
                      '...O.',
+                     '.....',
                      '.....']]
 
-Z_SHAPE_TEMPLATE = [['.....',
-                     '.....',
-                     '.OO..',
+Z_SHAPE_TEMPLATE = [['.OO..',
                      '..OO.',
+                     '.....',
+                     '.....',
                      '.....'],
-                    ['.....',
-                     '..O..',
+                    ['..O..',
                      '.OO..',
                      '.O...',
+                     '.....',
                      '.....']]
 
 I_SHAPE_TEMPLATE = [['..O..',
@@ -70,79 +70,79 @@ I_SHAPE_TEMPLATE = [['..O..',
                      '..O..',
                      '..O..',
                      '.....'],
-                    ['.....',
+                    ['OOOO.',
                      '.....',
-                     'OOOO.',
+                     '.....',
                      '.....',
                      '.....']]
 
-O_SHAPE_TEMPLATE = [['.....',
+O_SHAPE_TEMPLATE = [['.OO..',
+                     '.OO..',
                      '.....',
-                     '.OO..',
-                     '.OO..',
+                     '.....',
                      '.....']]
 
-J_SHAPE_TEMPLATE = [['.....',
-                     '.O...',
+J_SHAPE_TEMPLATE = [['.O...',
                      '.OOO.',
                      '.....',
-                     '.....'],
-                    ['.....',
-                     '..OO.',
-                     '..O..',
-                     '..O..',
-                     '.....'],
-                    ['.....',
                      '.....',
-                     '.OOO.',
+                     '.....'],
+                    ['..OO.',
+                     '..O..',
+                     '..O..',
+                     '.....',
+                     '.....'],
+                    ['.OOO.',
                      '...O.',
+                     '.....',
+                     '.....',
                      '.....'],
-                    ['.....',
-                     '..O..',
+                    ['..O..',
                      '..O..',
                      '.OO..',
+                     '.....',
                      '.....']]
 
-L_SHAPE_TEMPLATE = [['.....',
-                     '...O.',
+L_SHAPE_TEMPLATE = [['...O.',
                      '.OOO.',
                      '.....',
+                     '.....',
                      '.....'],
-                    ['.....',
-                     '..O..',
+                    ['..O..',
                      '..O..',
                      '..OO.',
-                     '.....'],
-                    ['.....',
                      '.....',
-                     '.OOO.',
+                     '.....'],
+                    ['.OOO.',
                      '.O...',
+                     '.....',
+                     '.....',
                      '.....'],
-                    ['.....',
-                     '.OO..',
+                    ['.OO..',
                      '..O..',
                      '..O..',
+                     '.....',
                      '.....']]
 
-T_SHAPE_TEMPLATE = [['.....',
-                     '..O..',
+T_SHAPE_TEMPLATE = [['..O..',
                      '.OOO.',
                      '.....',
+                     '.....',
                      '.....'],
-                    ['.....',
-                     '..O..',
+                    ['..O..',
                      '..OO.',
                      '..O..',
-                     '.....'],
-                    ['.....',
                      '.....',
-                     '.OOO.',
-                     '..O..',
                      '.....'],
-                    ['.....',
+                    ['.OOO.',
                      '..O..',
+                     '.....',
+                     '.....',
+                     '.....'],
+                    ['..O..',
                      '.OO..',
                      '..O..',
+                     '.....',
                      '.....']]
 
 PIECES = {'S': S_SHAPE_TEMPLATE,
@@ -163,6 +163,9 @@ class GameState:
         BASICFONT = pygame.font.Font('freesansbold.ttf', 18)
         BIGFONT = pygame.font.Font('freesansbold.ttf', 100)
         pygame.display.set_caption('Tetromino')
+
+        # DEBUG
+        self.total_lines = 0
         
         # setup variables for the start of the game
         self.board = self.getBlankBoard()
@@ -174,6 +177,7 @@ class GameState:
         self.movingRight = False
         self.score = 0
         self.lines = 0
+        self.height = 0
         self.level, self.fallFreq = self.calculateLevelAndFallFreq()
 
         self.fallingPiece = self.getNewPiece()
@@ -193,6 +197,7 @@ class GameState:
         self.movingRight = False
         self.score = 0
         self.lines = 0
+        self.height = 0
         self.level, self.fallFreq = self.calculateLevelAndFallFreq()
 
         self.fallingPiece = self.getNewPiece()
@@ -219,14 +224,13 @@ class GameState:
             
             if not self.isValidPosition():
                 image_data = pygame.surfarray.array3d(pygame.display.get_surface())
-                reward = - self.score
                 terminal = True
                 
                 self.reinit()
                 return image_data, reward, terminal # can't fit a new piece on the self.board, so game over
 
 
-            # moving the piece sideways
+        # moving the piece sideways
         if (input[1] == 1) and self.isValidPosition(adjX=-1):
             self.fallingPiece['x'] -= 1
             self.movingLeft = True
@@ -274,27 +278,33 @@ class GameState:
 
         # let the piece fall if it is time to fall
         # see if the piece has landed
+        cleared = 0
         if not self.isValidPosition(adjY=1):
             # falling piece has landed, set it on the self.board
             self.addToBoard()
 
             cleared = self.removeCompleteLines()
-            if cleared == 1:
-                reward = 40 * self.level
-            elif cleared == 2:
-                reward = 100 * self.level
-            elif cleared == 3:
-                reward = 300 * self.level
-            elif cleared == 4:
-                reward = 1200 * self.level
+            if cleared > 0:
+                if cleared == 1:
+                    self.score += 40 * self.level
+                elif cleared == 2:
+                    self.score += 100 * self.level
+                elif cleared == 3:
+                    self.score += 300 * self.level
+                elif cleared == 4:
+                    self.score += 1200 * self.level
 
-            reward += self.fallingPiece['y']
+            self.score += self.fallingPiece['y']
 
-            self.score += reward
             self.lines += cleared
+            self.total_lines += cleared
+
+            reward = self.height - self.getHeight()
+            self.height = self.getHeight()
 
             self.level, self.fallFreq = self.calculateLevelAndFallFreq()
             self.fallingPiece = None
+
         else:
             # piece did not land, just move the piece down
             self.fallingPiece['y'] += 1
@@ -309,8 +319,75 @@ class GameState:
 
         pygame.display.update()
 
+        if cleared > 0:
+            reward = 100 * cleared
+
         image_data = pygame.surfarray.array3d(pygame.display.get_surface())
         return image_data, reward, terminal
+
+    def getHeight(self):
+        stack_height = 0
+        for i in range(0, BOARDHEIGHT):
+            blank_row = True
+            for j in range(0, BOARDWIDTH):
+                if self.board[j][i] != '.':
+                    blank_row = False
+            if not blank_row:
+                stack_height = BOARDHEIGHT - i
+                break
+        return stack_height
+
+    def getReward(self):
+        stack_height = None
+        num_blocks = 0
+        for i in range(0, BOARDHEIGHT):
+            blank_row = True
+            for j in range(0, BOARDWIDTH):
+                if self.board[j][i] != '.':
+                    num_blocks += 1
+                    blank_row = False
+            if not blank_row and stack_height is None:
+                stack_height = BOARDHEIGHT - i
+                    
+        if stack_height is None:
+            return BOARDHEIGHT
+        else:
+            return BOARDHEIGHT - stack_height
+            return float(num_blocks) / float(stack_height * BOARDWIDTH)
+    def getReward(self):
+        stack_height = None
+        num_blocks = 0
+        for i in range(0, BOARDHEIGHT):
+            blank_row = True
+            for j in range(0, BOARDWIDTH):
+                if self.board[j][i] != '.':
+                    num_blocks += 1
+                    blank_row = False
+            if not blank_row and stack_height is None:
+                stack_height = BOARDHEIGHT - i
+                    
+        if stack_height is None:
+            return BOARDHEIGHT
+        else:
+            return BOARDHEIGHT - stack_height
+            return float(num_blocks) / float(stack_height * BOARDWIDTH)
+    def getReward(self):
+        stack_height = None
+        num_blocks = 0
+        for i in range(0, BOARDHEIGHT):
+            blank_row = True
+            for j in range(0, BOARDWIDTH):
+                if self.board[j][i] != '.':
+                    num_blocks += 1
+                    blank_row = False
+            if not blank_row and stack_height is None:
+                stack_height = BOARDHEIGHT - i
+                    
+        if stack_height is None:
+            return BOARDHEIGHT
+        else:
+            return BOARDHEIGHT - stack_height
+            return float(num_blocks) / float(stack_height * BOARDWIDTH)
 
     def makeTextObjs(self,text, font, color):
         surf = font.render(text, True, color)
@@ -329,7 +406,7 @@ class GameState:
         newPiece = {'shape': shape,
                     'rotation': random.randint(0, len(PIECES[shape]) - 1),
                     'x': int(BOARDWIDTH / 2) - int(TEMPLATEWIDTH / 2),
-                    'y': -2, # start it above the self.board (i.e. less than 0)
+                    'y': 0, # start it above the self.board (i.e. less than 0)
                     'color': random.randint(0, len(COLORS)-1)}
         return newPiece
 
