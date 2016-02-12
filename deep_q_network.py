@@ -14,8 +14,8 @@ from collections import deque
 GAME = 'tetris' # the name of the game being played for log files
 ACTIONS = 6 # number of valid actions
 GAMMA = 0.99 # decay rate of past observations
-OBSERVE = 500000. # timesteps to observe before training
-EXPLORE = 2000000. # frames over which to anneal epsilon
+OBSERVE = 500. # timesteps to observe before training
+EXPLORE = 500. # frames over which to anneal epsilon
 FINAL_EPSILON = 0.05 # final value of epsilon
 INITIAL_EPSILON = 1.0 # starting value of epsilon
 REPLAY_MEMORY = 590000 # number of previous transitions to remember
@@ -82,7 +82,6 @@ def trainNetwork(s, readout, h_fc1, sess):
     y = tf.placeholder("float", [None])
     readout_action = tf.reduce_sum(tf.mul(readout, a), reduction_indices = 1)
     cost = tf.reduce_mean(tf.square(y - readout_action))
-    #train_step = tf.train.RMSPropOptimizer(0.00025, 0.95, 0.95, 0.01).minimize(cost)
     train_step = tf.train.AdamOptimizer(1e-6).minimize(cost)
 
     # open up a game state to communicate with emulator
