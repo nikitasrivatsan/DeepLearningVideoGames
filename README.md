@@ -123,3 +123,8 @@ Ultimately, the results obtained here demonstrate the usefulness of convolutiona
 [3] Gerald Tesauro. Temporal difference learning and td-gammon. Communications of the ACM, 38(3):58–68, 1995.
 
 [4] Martin Riedmiller. Neural fitted q iteration–first experiences with a data efficient neural reinforcement learning method. In Machine Learning: ECML 2005, pages 317–328. Springer, 2005.
+
+
+## 9. installation
+
+[python2 pygame installer](http://www.pygame.org/ftp/pygame-1.9.2pre-py2.7-macosx10.7.mpkg.zip)
