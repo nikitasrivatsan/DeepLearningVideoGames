@@ -108,9 +108,9 @@ def trainNetwork(s, readout, h_fc1, sess):
     checkpoint = tf.train.get_checkpoint_state("saved_networks")
     if checkpoint and checkpoint.model_checkpoint_path:
         saver.restore(sess, checkpoint.model_checkpoint_path)
-        print "Successfully loaded:", checkpoint.model_checkpoint_path
+        print("Successfully loaded:", checkpoint.model_checkpoint_path)
     else:
-        print "Could not find old network weights"
+        print("Could not find old network weights")
 
     epsilon = INITIAL_EPSILON
     t = 0
@@ -185,7 +185,7 @@ def trainNetwork(s, readout, h_fc1, sess):
             state = "explore"
         else:
             state = "train"
-        print "TIMESTEP", t, "/ STATE", state, "/ LINES", game_state.total_lines, "/ EPSILON", epsilon, "/ ACTION", action_index, "/ REWARD", r_t, "/ Q_MAX %e" % np.max(readout_t)
+        print("TIMESTEP", t, "/ STATE", state, "/ LINES", game_state.total_lines, "/ EPSILON", epsilon, "/ ACTION", action_index, "/ REWARD", r_t, "/ Q_MAX %e" % np.max(readout_t))
 
         # write info to files
         '''
