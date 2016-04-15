@@ -1,0 +1,4 @@
+from Mario-Level-1 import mario_level_1
+
+if __name__ == '__main__':
+    mario_level_1.run_game()
