@@ -33,7 +33,7 @@ Note that when i is equal to the final iteration of an episode (colloquially the
 
 ![alt-text](http://imgur.com/nU8qRJM.png "(6)")
 
-## 2. Related Work
+## 3. Related Work
 
 Traditional approaches use an array to approximate the action-value function. However, this method does not scale well as the complexity of the system increases. Tesauro 1995 [3] proposed TD-Gammon, a method of using a multilayer perceptron with one hidden layer. This method worked well on the backgammon game, but failed to generalize to new problems.
 
