@@ -54,7 +54,7 @@ for episode = 1, M do
 	Initialize state s_1
 	for t = 1, T do
 		With probability ϵ select random action a_t
-		otherwise select a_t=max_a  Q(s_t,a; θ_i)
+		otherwise select a_t=argmax_a  Q(s_t,a; θ_i)
 		Execute action a_t in emulator and observe r_t and s_(t+1)
 		Store transition (s_t,a_t,r_t,s_(t+1)) in D
 		Sample a minibatch of transitions (s_j,a_j,r_j,s_(j+1)) from D
