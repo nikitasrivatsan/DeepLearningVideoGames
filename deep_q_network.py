@@ -46,7 +46,7 @@ def createNetwork():
 
     W_conv3 = weight_variable([3, 3, 64, 64])
     b_conv3 = bias_variable([64])
-    
+
     W_fc1 = weight_variable([1600, 512])
     b_fc1 = bias_variable([512])
 
@@ -199,7 +199,7 @@ def playGame():
     sess = tf.InteractiveSession()
     s, readout, h_fc1 = createNetwork()
     trainNetwork(s, readout, h_fc1, sess)
-
+    
 def main():
     playGame()
 
