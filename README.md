@@ -1,5 +1,5 @@
 # Using Deep Q Networks to Learn Video Game Strategies
-#### Akshay Srivatsan, Ivan Kuznetsov, Willis Wang
+#### Nikita Srivatsan, Ivan Kuznetsov, Willis Wang
 
 ## 1. Abstract
 
