@@ -23,7 +23,7 @@ bar1.fill((255,255,255))
 bar2 = bar.convert()
 bar2.fill((255,255,255))
 circ_sur = pygame.Surface((15,15))
-circ = pygame.draw.circle(circ_sur,(255,255,255),(15/2,15/2),15/2)
+circ = pygame.draw.circle(circ_sur,(255,255,255),(15//2,15//2),15//2)
 circle = circ_sur.convert()
 circle.set_colorkey((0,0,0))
 
@@ -73,7 +73,7 @@ while done==False:
         
     # movement of circle
     time_passed = clock.tick(30)
-    time_sec = time_passed / 1000.0
+    time_sec = time_passed // 1000.0
         
     circle_x += speed_x * time_sec
     circle_y += speed_y * time_sec

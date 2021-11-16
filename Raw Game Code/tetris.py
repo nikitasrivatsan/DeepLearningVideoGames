@@ -17,7 +17,7 @@ BLANK = '.'
 MOVESIDEWAYSFREQ = 0.15
 MOVEDOWNFREQ = 0.1
 
-XMARGIN = int((WINDOWWIDTH - BOARDWIDTH * BOXSIZE) / 2)
+XMARGIN = int((WINDOWWIDTH - BOARDWIDTH * BOXSIZE) // 2)
 TOPMARGIN = WINDOWHEIGHT - (BOARDHEIGHT * BOXSIZE) - 5
 
 #               R    G    B
@@ -326,17 +326,17 @@ def showTextScreen(text):
     # center of the screen until a key is pressed.
     # Draw the text drop shadow
     titleSurf, titleRect = makeTextObjs(text, BIGFONT, TEXTSHADOWCOLOR)
-    titleRect.center = (int(WINDOWWIDTH / 2), int(WINDOWHEIGHT / 2))
+    titleRect.center = (int(WINDOWWIDTH // 2), int(WINDOWHEIGHT // 2))
     DISPLAYSURF.blit(titleSurf, titleRect)
 
     # Draw the text
     titleSurf, titleRect = makeTextObjs(text, BIGFONT, TEXTCOLOR)
-    titleRect.center = (int(WINDOWWIDTH / 2) - 3, int(WINDOWHEIGHT / 2) - 3)
+    titleRect.center = (int(WINDOWWIDTH // 2) - 3, int(WINDOWHEIGHT // 2) - 3)
     DISPLAYSURF.blit(titleSurf, titleRect)
 
     # Draw the additional "Press a key to play." text.
     pressKeySurf, pressKeyRect = makeTextObjs('Press a key to play.', BASICFONT, TEXTCOLOR)
-    pressKeyRect.center = (int(WINDOWWIDTH / 2), int(WINDOWHEIGHT / 2) + 100)
+    pressKeyRect.center = (int(WINDOWWIDTH // 2), int(WINDOWHEIGHT // 2) + 100)
     DISPLAYSURF.blit(pressKeySurf, pressKeyRect)
 
     while checkForKeyPress() == None:
@@ -356,7 +356,7 @@ def checkForQuit():
 def calculateLevelAndFallFreq(score):
     # Based on the score, return the level the player is on and
     # how many seconds pass until a falling piece falls one space.
-    level = int(score / 10) + 1
+    level = int(score // 10) + 1
     fallFreq = 0.27 - (level * 0.02)
     return level, fallFreq
 
@@ -365,7 +365,7 @@ def getNewPiece():
     shape = random.choice(list(PIECES.keys()))
     newPiece = {'shape': shape,
                 'rotation': random.randint(0, len(PIECES[shape]) - 1),
-                'x': int(BOARDWIDTH / 2) - int(TEMPLATEWIDTH / 2),
+                'x': int(BOARDWIDTH // 2) - int(TEMPLATEWIDTH // 2),
                 'y': -2, # start it above the board (i.e. less than 0)
                 'color': random.randint(0, len(COLORS)-1)}
     return newPiece

@@ -16,7 +16,7 @@ BLANK = '.'
 MOVESIDEWAYSFREQ = 0.15
 MOVEDOWNFREQ = 0.1
 
-XMARGIN = int((WINDOWWIDTH - BOARDWIDTH * BOXSIZE) / 2)
+XMARGIN = int((WINDOWWIDTH - BOARDWIDTH * BOXSIZE) // 2)
 TOPMARGIN = WINDOWHEIGHT - (BOARDHEIGHT * BOXSIZE) - 5
 
 #               R    G    B
@@ -396,7 +396,7 @@ class GameState:
     def calculateLevelAndFallFreq(self):
         # Based on the self.score, return the self.level the player is on and
         # how many seconds pass until a falling piece falls one space.
-        self.level = min(int(self.lines / 10) + 1, 10)
+        self.level = min(int(self.lines // 10) + 1, 10)
         self.fallFreq = 0.27 - (self.level * 0.02)
         return self.level, self.fallFreq
 
@@ -405,7 +405,7 @@ class GameState:
         shape = random.choice(list(PIECES.keys()))
         newPiece = {'shape': shape,
                     'rotation': random.randint(0, len(PIECES[shape]) - 1),
-                    'x': int(BOARDWIDTH / 2) - int(TEMPLATEWIDTH / 2),
+                    'x': int(BOARDWIDTH // 2) - int(TEMPLATEWIDTH // 2),
                     'y': 0, # start it above the self.board (i.e. less than 0)
                     'color': random.randint(0, len(COLORS)-1)}
         return newPiece
