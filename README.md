@@ -2,7 +2,7 @@
 #### Nikita Srivatsan, Ivan Kuznetsov, Willis Wang
 
 ## 1. Abstract
-
+I don't know
 In this project, we apply a deep learning model recently developed by Minh et al 2015 [1] to learn optimal control patterns from visual input using reinforcement learning. While this method is highly generalizable, we applied it to the problem of video game strategy, specifically for Pong and Tetris. Given raw pixel values from the screen, we used a convolutional neural network trained with Q learning to approximate future expected reward for any possible action, and then selected an action based on the best possible outcome. We find that this method is capable of generalizing to new problems with no adjustment of the model architecture. After sufficient training, our Pong model achieved better than human performance on the games, demonstrating the potential for deep learning as a powerful and generalizable method for learning high-level control schemes.
 
 ## 2. Background
